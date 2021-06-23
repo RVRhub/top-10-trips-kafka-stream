@@ -5,6 +5,8 @@ import java.util.TreeSet;
 import java.util.concurrent.CountDownLatch;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.messaging.handler.annotation.Payload;
@@ -17,6 +19,8 @@ import com.rvr.visitsassignments.types.RatingByTrips;
 @Component
 public class KafkaConsumer
 {
+	private static final Logger LOGGER = LoggerFactory.getLogger(KafkaConsumer.class);
+
 	private final KafkaTemplate<String, String> kafkaTemplate;
 	private CountDownLatch latch = new CountDownLatch(1);
 	private TreeSet<RatingByTrips> top10Rating = null;
@@ -26,9 +30,9 @@ public class KafkaConsumer
 	@KafkaListener(topics = AppConfigs.participantsTopic, groupId = AppConfigs.participantsTopic)
 	public void receiveParticipantsTopic(ConsumerRecord<String, ?> consumerRecord)
 	{
-		System.out.println(consumerRecord.key());
+		LOGGER.info(consumerRecord.key());
 		Optional.ofNullable(top10Rating.first()).ifPresent(t -> {
-				System.out.println("First tripId: " + t.getTripId());
+				LOGGER.info("First tripId: " + t.getTripId());
 				this.kafkaTemplate.send(AppConfigs.joinParticipantToTrip, consumerRecord.key(), t.getTripId());
 			}
 		);
@@ -36,10 +40,10 @@ public class KafkaConsumer
 		latch.countDown();
 	}
 
-	@KafkaListener(topics = "visit-assignments-top10-ratings-changelog", groupId = "json")
+	@KafkaListener(topics = "visit-assignments-top10-ratings-changelog", groupId = "json", containerFactory = "kafkaListenerContainerFactory")
 	public void receiveTop10Ratings(@Payload Top10Trips consumerRecord)
 	{
-		System.out.println(consumerRecord.toString());
+		LOGGER.info(consumerRecord.toString());
 		setCurrentListOfTop10Rating(consumerRecord.getTop10());
 		latch.countDown();
 	}

@@ -9,8 +9,11 @@ import org.apache.kafka.streams.kstream.Grouped;
 import org.apache.kafka.streams.kstream.KTable;
 import org.apache.kafka.streams.kstream.Materialized;
 import org.apache.kafka.streams.state.KeyValueStore;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.rvr.visitsassignments.KafkaConsumer;
 import com.rvr.visitsassignments.common.AppConfigs;
 import com.rvr.visitsassignments.common.AppSerdes;
 import com.rvr.visitsassignments.common.Top10Trips;
@@ -19,6 +22,8 @@ import com.rvr.visitsassignments.types.TripInfo;
 
 public class Top10AvailableTripsTopology
 {
+	private static final Logger LOGGER = LoggerFactory.getLogger(Top10AvailableTripsTopology.class);
+
 	private final StreamsBuilder streamsBuilder;
 
 	public Top10AvailableTripsTopology(StreamsBuilder streamsBuilder)
@@ -61,7 +66,7 @@ public class Top10AvailableTripsTopology
 		top10TripsKTable.toStream().foreach((k, v) -> {
 			try
 			{
-				System.out.println("k=" + k + " v= " + v.getTop10Sorted());
+				LOGGER.info("k=" + k + " v= " + v.getTop10Sorted());
 			}
 			catch (JsonProcessingException e)
 			{

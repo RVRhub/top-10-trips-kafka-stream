@@ -9,6 +9,8 @@ import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.state.KeyValueIterator;
 import org.apache.kafka.streams.state.QueryableStoreTypes;
 import org.apache.kafka.streams.state.ReadOnlyKeyValueStore;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -30,6 +32,8 @@ import com.rvr.visitsassignments.topology.Top10AvailableTripsTopology;
 @EnableKafkaStreams
 public class VisitsAssignmentsApplication {
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(VisitsAssignmentsApplication.class);
+
 	public static void main(String[] args) {
 		SpringApplication.run(VisitsAssignmentsApplication.class, args);
 	}
@@ -44,7 +48,7 @@ public class VisitsAssignmentsApplication {
 
 		Topology topology = new Top10AvailableTripsTopology(builder).getTopology();
 
-		System.out.println(topology.describe());
+		LOGGER.info(String.valueOf(topology.describe()));
 
 		return topology;
 	}
