@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.rvr.visitsassignments.common.AppConfigs;
 import com.rvr.visitsassignments.topology.Top10AvailableTripsTopology;
 
 @SpringBootApplication
@@ -116,7 +117,16 @@ class MyIqController{
 		Random random = new Random();
 		int id = random.nextInt(100)*100;
 		String s = String.valueOf(id);
-			kafkaTemplate.send("trips", s, "{\"tripId\": \""+ s +"\", \"status\": \"Open\", \"rating\": "+ s +"}");
+			kafkaTemplate.send(AppConfigs.tripInfoTopic, s, "{\"tripId\": \""+ s +"\", \"status\": \"Open\", \"rating\": "+ s +"}");
+	}
+
+	@GetMapping("/iq/genNewParticipant")
+	public void addParticipant()
+	{
+		Random random = new Random();
+		int id = random.nextInt(100);
+		String s = String.valueOf(id);
+		kafkaTemplate.send(AppConfigs.participantsTopic, s, "{\"participantId\": \""+ s +"\"}");
 	}
 }
 

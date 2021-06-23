@@ -8,10 +8,44 @@ import java.util.Map;
 
 import com.rvr.visitsassignments.serde.JsonDeserializer;
 import com.rvr.visitsassignments.serde.JsonSerializer;
+import com.rvr.visitsassignments.types.Participant;
+import com.rvr.visitsassignments.types.PlannedAssigment;
 import com.rvr.visitsassignments.types.RatingByTrips;
 import com.rvr.visitsassignments.types.TripInfo;
 
 public class AppSerdes extends Serdes {
+
+	static final class PlannedAssigmentSerde extends WrapperSerde<PlannedAssigment> {
+		PlannedAssigmentSerde() {
+			super(new JsonSerializer<>(), new JsonDeserializer<>());
+		}
+	}
+
+	public static Serde<PlannedAssigment> PlannedAssigment() {
+		PlannedAssigmentSerde serde = new PlannedAssigmentSerde();
+
+		Map<String, Object> serdeConfigs = new HashMap<>();
+		serdeConfigs.put("specific.class.name", PlannedAssigment.class);
+		serde.configure(serdeConfigs, false);
+
+		return serde;
+	}
+
+	static final class ParticipantSerde extends WrapperSerde<Participant> {
+		ParticipantSerde() {
+			super(new JsonSerializer<>(), new JsonDeserializer<>());
+		}
+	}
+
+	public static Serde<Participant> Participant() {
+		ParticipantSerde serde = new ParticipantSerde();
+
+		Map<String, Object> serdeConfigs = new HashMap<>();
+		serdeConfigs.put("specific.class.name", Participant.class);
+		serde.configure(serdeConfigs, false);
+
+		return serde;
+	}
 
 	static final class TripInfoSerde extends WrapperSerde<TripInfo> {
 		TripInfoSerde() {

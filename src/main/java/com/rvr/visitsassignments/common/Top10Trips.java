@@ -38,7 +38,7 @@ public class Top10Trips implements Iterable<RatingByTrips> {
 		}
 		top10Searchable.put(newValue.getTripId(), newValue);
 		top10Sorted.add(newValue);
-		if (top10Sorted.size() > 3) {
+		if (top10Sorted.size() > 10) {
 			final RatingByTrips lastItem = top10Sorted.last();
 			top10Searchable.remove(lastItem.getTripId());
 			top10Sorted.remove(lastItem);
@@ -60,6 +60,11 @@ public class Top10Trips implements Iterable<RatingByTrips> {
 	public String getTop10Sorted() throws JsonProcessingException
 	{
 		return mapper.writeValueAsString(top10Sorted);
+	}
+
+	public TreeSet<RatingByTrips> getTop10()
+	{
+		return top10Sorted;
 	}
 
 	@JsonProperty("top10Sorted")
