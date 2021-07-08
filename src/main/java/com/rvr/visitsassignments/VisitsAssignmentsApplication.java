@@ -1,5 +1,6 @@
 package com.rvr.visitsassignments;
 
+import java.util.Collection;
 import java.util.Random;
 
 import org.apache.kafka.streams.KafkaStreams;
@@ -9,6 +10,8 @@ import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.state.KeyValueIterator;
 import org.apache.kafka.streams.state.QueryableStoreTypes;
 import org.apache.kafka.streams.state.ReadOnlyKeyValueStore;
+import org.redisson.api.RSortedSet;
+import org.redisson.api.RedissonClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,7 +29,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.rvr.visitsassignments.common.AppConfigs;
-import com.rvr.visitsassignments.topology.Top10AvailableTripsTopology;
+import com.rvr.visitsassignments.model.SortedTrip;
+import com.rvr.visitsassignments.repository.SortedTripRepository;
+import com.rvr.visitsassignments.topology.Top10AvailableTripsWithRedisTopology;
 
 @SpringBootApplication
 @EnableKafkaStreams
@@ -38,6 +43,8 @@ public class VisitsAssignmentsApplication {
 		SpringApplication.run(VisitsAssignmentsApplication.class, args);
 	}
 
+	@Autowired
+	private RedissonClient redissonClient;
 
 	@Bean
 	public Topology topology(StreamsBuilder builder)
@@ -46,7 +53,7 @@ public class VisitsAssignmentsApplication {
 
         // Topology topology = new JoinTopology(builder).getTopology();
 
-		Topology topology = new Top10AvailableTripsTopology(builder).getTopology();
+		Topology topology = new Top10AvailableTripsWithRedisTopology(builder, redissonClient).getTopology();
 
 		LOGGER.info(String.valueOf(topology.describe()));
 
@@ -84,14 +91,17 @@ class Producer
 @RestController
 class MyIqController{
 
+	private final RedissonClient redissonClient;
 	private final StreamsBuilderFactoryBean streamsBuilderFactoryBean;
 	private final KafkaTemplate<String, String> kafkaTemplate;
 
 	@Autowired
-	public MyIqController(StreamsBuilderFactoryBean streamsBuilderFactoryBean, KafkaTemplate<String, String> kafkaTemplate)
+	public MyIqController(StreamsBuilderFactoryBean streamsBuilderFactoryBean, KafkaTemplate<String, String> kafkaTemplate,
+		RedissonClient redissonClient)
 	{
 		this.streamsBuilderFactoryBean = streamsBuilderFactoryBean;
 		this.kafkaTemplate = kafkaTemplate;
+		this.redissonClient = redissonClient;
 	}
 
 	@GetMapping("/iq/{id}")
@@ -100,7 +110,6 @@ class MyIqController{
 		KafkaStreams kafkaStreams = streamsBuilderFactoryBean.getKafkaStreams();
 		ReadOnlyKeyValueStore<Integer, String> store = kafkaStreams.
 			store(StoreQueryParameters.fromNameAndType("visit-store", QueryableStoreTypes.keyValueStore()));
-
 
 		return store.get(id);
 	}
@@ -131,6 +140,14 @@ class MyIqController{
 		int id = random.nextInt(100);
 		String s = String.valueOf(id);
 		kafkaTemplate.send(AppConfigs.participantsTopic, s, "{\"participantId\": \""+ s +"\"}");
+	}
+
+	@GetMapping("/allTripsFromRedis")
+	public Collection<SortedTrip> allTripsFromRedis()
+	{
+		RSortedSet<SortedTrip> sortedTrip = redissonClient.getSortedSet("sortedTrip");
+
+		return sortedTrip.readAll();
 	}
 }
 

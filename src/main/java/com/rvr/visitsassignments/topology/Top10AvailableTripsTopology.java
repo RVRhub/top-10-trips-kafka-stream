@@ -13,7 +13,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.rvr.visitsassignments.KafkaConsumer;
 import com.rvr.visitsassignments.common.AppConfigs;
 import com.rvr.visitsassignments.common.AppSerdes;
 import com.rvr.visitsassignments.common.Top10Trips;
